@@ -5,14 +5,19 @@ const app = express();
 const http = require('http').Server(app);
 const RoomManager = require('../models/RoomManager');
 
+const cors = require("cors");
+
+
+
 const server = (port) => {
 
   const rm = new RoomManager();
 
   // Routes
   const timer = require('../routes/timer')(rm);
+  
   app.use('/timer', timer);
-
+  app.use(cors());
   app.use(express.static('public'));
 
   // Socket

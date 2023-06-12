@@ -8,7 +8,8 @@ module.exports = (http, roomManager) => {
     cors: {
       // change this to your front-end domain
       origin: "*"
-    }
+    },
+    transports: ['websocket']
   });
   const rm = roomManager;
   const broadcastUpdate = (timer) => io.to(timer.id).emit('update timer', timer.time);
@@ -22,7 +23,7 @@ module.exports = (http, roomManager) => {
     // Events
 
     socket.on('set up', (timerId) => {
-      
+
       // A failsafe to make sure a valid Timer Id is obtained at this point.
       // Being passed an invalid timerId (undefined, null) should not happen.
       if (!timerId) {
@@ -32,10 +33,10 @@ module.exports = (http, roomManager) => {
       const tId = timerId;
 
       // if the timer does not exists
-      if (! (rm.timerExists(timerId)) ) {
+      if (!(rm.timerExists(timerId))) {
         rm.createTimer(timerId);
       }
-      
+
       try {
         socket.join(tId);
         rm.addClient(socket.id);
@@ -46,7 +47,7 @@ module.exports = (http, roomManager) => {
         // send the current time to the user as part of initial setup.
         socket.emit('update timer', rm.timerList[tId].time);
 
-        switch(rm.timerList[tId].timerRunning) {
+        switch (rm.timerList[tId].timerRunning) {
 
           case TIMERSTATE.RUNNING:
             io.to(tId).emit('timer started');
@@ -54,7 +55,7 @@ module.exports = (http, roomManager) => {
 
           case TIMERSTATE.STOPPED:
           case TIMERSTATE.SUSPENDED:
-            io.to(tId).emit('timer stopped'); 
+            io.to(tId).emit('timer stopped');
             break;
 
           default:
@@ -64,7 +65,7 @@ module.exports = (http, roomManager) => {
         io.to(tId).emit('timer error');
       }
     });
-  
+
     socket.on('get time', (timerId) => {
       if (rm.timerExists(timerId)) {
         logExceptInTest(`User ${socket.id} is querying Timer ${timerId}`);
